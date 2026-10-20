@@ -47,6 +47,7 @@ app.get("/db-test", async (req, res) => {
 
 
 app.listen(PORT, () => {
-    console.log("Server Running on PORT", PORT);
+    console.log(`Server Runing on port ${PORT}`);
 });
 
+module.exports = app;
