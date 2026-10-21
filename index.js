@@ -8,11 +8,6 @@ import productRoutes from "./routes/products.js";
 import cartRoutes from "./routes/cart.js";
 import orderRoutes from "./routes/orders.js";
 
-
-
-
-
-
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -26,28 +21,10 @@ app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
 
 
-app.get("/", (req, res) => {
-    res.send("Hello EXPRESS from 5000 PORT");
-});
+if(!process.env.VERCEL){
+    app.listen(PORT, () => {
+        console.log(`Server Runing on port ${PORT}`);
+    });
+}
 
-
-app.get("/db-test", async (req, res) => {
-    try{
-        const result = await db.query("SELECT NOW()");
-        res.send(result.rows);
-        
-    }
-
-    catch(error){
-        res.status(500).send({message: "Server error"})
-        console.log(error, "error");
-    }
-
-})
-
-
-app.listen(PORT, () => {
-    console.log(`Server Runing on port ${PORT}`);
-});
-
-module.exports = app;
+export default app;
