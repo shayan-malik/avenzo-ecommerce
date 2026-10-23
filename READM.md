@@ -4,7 +4,7 @@ REST API for **Avenzo**, a full-stack e-commerce app. Built with Node.js, Expres
 
 - **Live API:** https://avenzo-ecommerce.vercel.app/
 - **Live app:** https://avenzo-plum.vercel.app/
-- **Frontend repo:** <frontend-repo-url>
+- **Frontend repo:** https://github.com/shayan-malik/avenzo
 
 ## Features
 
@@ -37,8 +37,8 @@ Node.js, Express (ES modules), PostgreSQL (Neon), `pg`, JWT, bcrypt, multer, Clo
 ## Run Locally
 
 ```bash
-git clone <backend-repo-url>
-cd <backend-folder>
+git clone https://github.com/shayan-malik/avenzo-ecommerce
+cd avenzo-ecommerce
 npm install
 ```
 
@@ -87,5 +87,5 @@ The API runs on `http://localhost:5000`.
 
 **Shayan Malik**
 
-- GitHub: https://github.com/your-username
-- LinkedIn: https://linkedin.com/in/your-profile
+- GitHub: https://github.com/shayan-malik
+- LinkedIn: https://www.linkedin.com/in/shayan-malik-43a93139b/
