@@ -83,7 +83,7 @@ router.get("/:id", async (req, res) => {
         const productId = Number(req.params.id);
 
         if (!Number.isInteger(productId)) {
-            return res.status(400).json({ message: "Galat product id" });
+            return res.status(400).json({ message: "Invalid product id" });
         }
 
         const result = await db.query(
@@ -96,7 +96,7 @@ router.get("/:id", async (req, res) => {
         );
 
         if (result.rows.length === 0) {
-            return res.status(404).json({ message: "Product nahi mila" });
+            return res.status(404).json({ message: "Product not found" });
         }
 
         res.json(result.rows[0]);
@@ -113,18 +113,18 @@ router.post("/", verifyToken, requireRole("admin"), async (req, res) => {
         const { name, description, price, stock, image_url, category_id } = req.body;
 
         if (!name || price === undefined || !category_id) {
-            return res.status(400).json({ message: "Name, price aur category lazmi hain" });
+            return res.status(400).json({ message: "Name, price and category are required" });
         }
 
         const priceNum = Number(price);
         const stockNum = stock === undefined ? 0 : Number(stock);
 
         if (isNaN(priceNum) || priceNum < 0) {
-            return res.status(400).json({ message: "Price sahi number ho (0 ya zyada)" });
+            return res.status(400).json({ message: "Price must be a number (0 or more)" });
         }
 
         if (!Number.isInteger(stockNum) || stockNum < 0) {
-            return res.status(400).json({ message: "Stock poora number ho (0 ya zyada)" });
+            return res.status(400).json({ message: "Stock must be a whole number (0 or more)" });
         }
 
         const result = await db.query(
@@ -134,10 +134,10 @@ router.post("/", verifyToken, requireRole("admin"), async (req, res) => {
             [name.trim(), description || null, priceNum, stockNum, image_url || null, category_id]
         );
 
-        res.status(201).json({ message: "Product add ho gaya", product: result.rows[0] });
+        res.status(201).json({ message: "Product added successfully", product: result.rows[0] });
     } catch (error) {
         if (error.code === "23503") {
-            return res.status(400).json({ message: "Ye category maujood nahi" });
+            return res.status(400).json({ message: "This category does not exist" });
         }
         console.log(error);
         res.status(500).json({ message: "Server error" });
@@ -151,24 +151,24 @@ router.put("/:id", verifyToken, requireRole("admin"), async (req, res) => {
         const productId = Number(req.params.id);
 
         if (!Number.isInteger(productId)) {
-            return res.status(400).json({ message: "Galat product id" });
+            return res.status(400).json({ message: "Invalid product id" });
         }
 
         const { name, description, price, stock, image_url, category_id } = req.body;
 
         if (!name || price === undefined || !category_id) {
-            return res.status(400).json({ message: "Name, price aur category lazmi hain" });
+            return res.status(400).json({ message: "Name, price and category are required" });
         }
 
         const priceNum = Number(price);
         const stockNum = stock === undefined ? 0 : Number(stock);
 
         if (isNaN(priceNum) || priceNum < 0) {
-            return res.status(400).json({ message: "Price sahi number ho (0 ya zyada)" });
+            return res.status(400).json({ message: "Price must be a number (0 or more)" });
         }
 
         if (!Number.isInteger(stockNum) || stockNum < 0) {
-            return res.status(400).json({ message: "Stock poora number ho (0 ya zyada)" });
+            return res.status(400).json({ message: "Stock must be a whole number (0 or more)" });
         }
 
         const result = await db.query(
@@ -181,13 +181,13 @@ router.put("/:id", verifyToken, requireRole("admin"), async (req, res) => {
         );
 
         if (result.rows.length === 0) {
-            return res.status(404).json({ message: "Product nahi mila" });
+            return res.status(404).json({ message: "Product not found" });
         }
 
-        res.json({ message: "Product update ho gaya", product: result.rows[0] });
+        res.json({ message: "Product updated successfully", product: result.rows[0] });
     } catch (error) {
         if (error.code === "23503") {
-            return res.status(400).json({ message: "Ye category maujood nahi" });
+            return res.status(400).json({ message: "This category does not exist" });
         }
         console.log(error);
         res.status(500).json({ message: "Server error" });
@@ -203,7 +203,7 @@ router.delete("/:id", verifyToken, requireRole("admin"), async (req, res) => {
         const productId = Number(req.params.id);
 
         if (!Number.isInteger(productId)) {
-            return res.status(400).json({ message: "Galat product id" });
+            return res.status(400).json({ message: "Invalid product id" });
         }
 
         await client.query("BEGIN");
@@ -218,17 +218,17 @@ router.delete("/:id", verifyToken, requireRole("admin"), async (req, res) => {
 
         if (result.rows.length === 0) {
             await client.query("ROLLBACK");
-            return res.status(404).json({ message: "Product nahi mila" });
+            return res.status(404).json({ message: "Product not found" });
         }
 
         await client.query("COMMIT");
-        res.json({ message: "Product delete ho gaya" });
+        res.json({ message: "Product deleted successfully" });
     } catch (error) {
         await client.query("ROLLBACK");
 
         if (error.code === "23503") {
             return res.status(409).json({
-                message: "Ye product kisi order mein maujood hai, isliye delete nahi ho sakta"
+                message: "This product is part of an existing order, so it cannot be deleted"
             });
         }
 

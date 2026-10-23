@@ -29,7 +29,7 @@ router.put("/", async (req, res) => {
         const { first_name, last_name, phone } = req.body;
 
         if (!first_name || !last_name) {
-            return res.status(400).json({ message: "First name aur last name lazmi hain" });
+            return res.status(400).json({ message: "First name and last name are required" });
         }
 
         const result = await db.query(
@@ -40,7 +40,7 @@ router.put("/", async (req, res) => {
             [first_name.trim(), last_name.trim(), phone || null, req.user.id]
         );
 
-        res.json({ message: "Profile update ho gayi", user: result.rows[0] });
+        res.json({ message: "Profile updated successfully", user: result.rows[0] });
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: "Server error" });
@@ -61,7 +61,7 @@ router.delete("/", async (req, res) => {
             sameSite: "lax"
         });
 
-        res.json({ message: "Account delete ho gaya" });
+        res.json({ message: "Account deleted successfully" });
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: "Server error" });

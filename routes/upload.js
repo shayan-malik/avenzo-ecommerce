@@ -12,7 +12,7 @@ const upload = multer({
     if (file.mimetype.startsWith("image/")) {
       cb(null, true);
     } else {
-      cb(new Error("Sirf image file allowed hai"));
+      cb(new Error("Only image files are allowed"));
     }
   },
 });
@@ -43,7 +43,7 @@ router.post(
   async (req, res) => {
     try {
       if (!req.file) {
-        return res.status(400).json({ message: "Image select nahi hui" });
+        return res.status(400).json({ message: "No image selected" });
       }
 
       const result = await uploadToCloudinary(req.file.buffer);
@@ -51,7 +51,7 @@ router.post(
       res.json({ url: result.secure_url });
     } catch (error) {
       console.error(error);
-      res.status(500).json({ message: "Image upload nahi ho saki" });
+      res.status(500).json({ message: "Image upload failed" });
     }
   }
 );

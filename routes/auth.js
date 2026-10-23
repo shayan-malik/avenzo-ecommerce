@@ -10,11 +10,11 @@ router.post("/signup", async (req, res) => {
         const { first_name, last_name, email, password, phone } = req.body;
 
         if (!first_name || !last_name || !email || !password) {
-            return res.status(400).json({ message: "Saari zaroori fields bharein" });
+            return res.status(400).json({ message: "Please fill in all required fields" });
         }
 
         if (password.length < 6) {
-            return res.status(400).json({ message: "Password kam az kam 6 characters ka ho" });
+            return res.status(400).json({ message: "Password must be at least 6 characters" });
         }
 
         const cleanEmail = email.trim().toLowerCase();
@@ -25,7 +25,7 @@ router.post("/signup", async (req, res) => {
         );
 
         if (existing.rows.length > 0) {
-            return res.status(409).json({ message: "Email pehle se registered hai" });
+            return res.status(409).json({ message: "This email is already registered" });
         }
 
         const password_hash = await bcrypt.hash(password, 10);
@@ -37,7 +37,7 @@ router.post("/signup", async (req, res) => {
             [first_name.trim(), last_name.trim(), cleanEmail, password_hash, phone || null]
         );
 
-        res.status(201).json({ message: "Signup ho gaya", user: result.rows[0] });
+        res.status(201).json({ message: "Signed up successfully", user: result.rows[0] });
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: "Server error" });
@@ -50,7 +50,7 @@ router.post("/login", async (req, res) => {
         const { email, password } = req.body;
 
         if (!email || !password) {
-            return res.status(400).json({ message: "Email aur password dono dein" });
+            return res.status(400).json({ message: "Please enter both email and password" });
         }
 
         const cleanEmail = email.trim().toLowerCase();
@@ -64,17 +64,17 @@ router.post("/login", async (req, res) => {
         const user = result.rows[0];
 
         if (!user) {
-            return res.status(401).json({ message: "Email ya password galat hai" });
+            return res.status(401).json({ message: "Incorrect email or password" });
         }
 
         const isMatch = await bcrypt.compare(password, user.password_hash);
 
         if (!isMatch) {
-            return res.status(401).json({ message: "Email ya password galat hai" });
+            return res.status(401).json({ message: "Incorrect email or password" });
         }
 
         if (!user.is_active) {
-            return res.status(403).json({ message: "Aapka account band hai" });
+            return res.status(403).json({ message: "Your account has been deactivated" });
         }
 
         const token = jwt.sign(
@@ -91,7 +91,7 @@ router.post("/login", async (req, res) => {
         });
 
         res.json({
-            message: "Login ho gaya",
+            message: "Logged in successfully",
             user: {
                 id: user.id,
                 first_name: user.first_name,
@@ -114,7 +114,7 @@ router.post("/logout", (req, res) => {
         sameSite: "lax"
     });
 
-    res.json({ message: "Logout ho gaya" });
+    res.json({ message: "Logged out successfully" });
 });
 
 

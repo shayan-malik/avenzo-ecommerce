@@ -6,7 +6,7 @@ export const verifyToken = async (req, res, next) => {
         const token = req.cookies.token;
 
         if (!token) {
-            return res.status(401).json({ message: "Pehle login karein" });
+            return res.status(401).json({ message: "Please log in first" });
         }
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -19,14 +19,14 @@ export const verifyToken = async (req, res, next) => {
         const user = result.rows[0];
 
         if (!user || !user.is_active) {
-            return res.status(401).json({ message: "Account maujood nahi ya band hai" });
+            return res.status(401).json({ message: "Account not found or deactivated" });
         }
 
         req.user = { id: user.id, role: user.role };
         next();
     } catch (error) {
         if (error.name === "JsonWebTokenError" || error.name === "TokenExpiredError") {
-            return res.status(401).json({ message: "Token galat ya expire ho gaya" });
+            return res.status(401).json({ message: "Invalid or expired token" });
         }
         console.log(error);
         res.status(500).json({ message: "Server error" });
@@ -36,7 +36,7 @@ export const verifyToken = async (req, res, next) => {
 export const requireRole = (...roles) => {
     return (req, res, next) => {
         if (!roles.includes(req.user.role)) {
-            return res.status(403).json({ message: "Aapko is kaam ki ijazat nahi" });
+            return res.status(403).json({ message: "You do not have permission to perform this action" });
         }
         next();
     };

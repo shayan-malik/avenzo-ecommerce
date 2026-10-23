@@ -25,7 +25,7 @@ app.use("/api/upload", uploadRoutes);
 
 if(!process.env.VERCEL){
     app.listen(PORT, () => {
-        console.log(`Server Runing on port ${PORT}`);
+        console.log(`Server running on port ${PORT}`);
     });
 }
 

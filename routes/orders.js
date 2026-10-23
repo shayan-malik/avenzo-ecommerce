@@ -13,7 +13,7 @@ router.post("/", async (req, res) => {
     const { shipping_address } = req.body;
 
     if (!shipping_address || !shipping_address.trim()) {
-        return res.status(400).json({ message: "Shipping address dein" });
+        return res.status(400).json({ message: "Please enter a shipping address" });
     }
 
     const client = await db.connect();
@@ -36,7 +36,7 @@ router.post("/", async (req, res) => {
 
         if (items.length === 0) {
             await client.query("ROLLBACK");
-            return res.status(400).json({ message: "Aapki cart khali hai" });
+            return res.status(400).json({ message: "Your cart is empty" });
         }
 
         let total = 0;
@@ -45,7 +45,7 @@ router.post("/", async (req, res) => {
             if (item.quantity > item.stock) {
                 await client.query("ROLLBACK");
                 return res.status(400).json({
-                    message: `${item.name} ka stock kam hai (sirf ${item.stock} bacha hai)`
+                    message: `Not enough stock for ${item.name} (only ${item.stock} left)`
                 });
             }
             total += Number(item.price) * item.quantity;
@@ -79,7 +79,7 @@ router.post("/", async (req, res) => {
 
         await client.query("COMMIT");
 
-        res.status(201).json({ message: "Order place ho gaya", order });
+        res.status(201).json({ message: "Order placed successfully", order });
     } catch (error) {
         await client.query("ROLLBACK");
         console.log(error);
@@ -134,7 +134,7 @@ router.get("/admin/all", requireRole("admin"), async (req, res) => {
         const { status } = req.query;
 
         if (status && !allowedStatuses.includes(status)) {
-            return res.status(400).json({ message: "Galat status" });
+            return res.status(400).json({ message: "Invalid status" });
         }
 
         const values = [];
@@ -188,7 +188,7 @@ router.put("/:id/status", requireRole("admin"), async (req, res) => {
     const { status } = req.body;
 
     if (!Number.isInteger(orderId) || !allowedStatuses.includes(status)) {
-        return res.status(400).json({ message: "Order id ya status galat hai" });
+        return res.status(400).json({ message: "Invalid order id or status" });
     }
 
     const client = await db.connect();
@@ -203,12 +203,12 @@ router.put("/:id/status", requireRole("admin"), async (req, res) => {
 
         if (current.rows.length === 0) {
             await client.query("ROLLBACK");
-            return res.status(404).json({ message: "Order nahi mila" });
+            return res.status(404).json({ message: "Order not found" });
         }
 
         if (current.rows[0].status === "cancelled") {
             await client.query("ROLLBACK");
-            return res.status(400).json({ message: "Cancel hua order dobara change nahi ho sakta" });
+            return res.status(400).json({ message: "A cancelled order cannot be changed again" });
         }
 
         // cancel karne par stock wapas
@@ -231,7 +231,7 @@ router.put("/:id/status", requireRole("admin"), async (req, res) => {
 
         await client.query("COMMIT");
 
-        res.json({ message: "Status update ho gaya", order: result.rows[0] });
+        res.json({ message: "Order status updated successfully", order: result.rows[0] });
     } catch (error) {
         await client.query("ROLLBACK");
         console.log(error);

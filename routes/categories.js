@@ -24,7 +24,7 @@ router.post("/", verifyToken, requireRole("admin"), async (req, res) => {
         const { name } = req.body;
 
         if (!name || !name.trim()) {
-            return res.status(400).json({ message: "Category ka naam dein" });
+            return res.status(400).json({ message: "Please enter a category name" });
         }
 
         const result = await db.query(
@@ -33,12 +33,12 @@ router.post("/", verifyToken, requireRole("admin"), async (req, res) => {
         );
 
         res.status(201).json({
-            message: "Category add ho gayi",
+            message: "Category added successfully",
             category: result.rows[0]
         });
     } catch (error) {
         if (error.code === "23505") {
-            return res.status(409).json({ message: "Ye category pehle se maujood hai" });
+            return res.status(409).json({ message: "This category already exists" });
         }
         console.log(error);
         res.status(500).json({ message: "Server error" });
@@ -52,13 +52,13 @@ router.put("/:id", verifyToken, requireRole("admin"), async (req, res) => {
         const categoryId = Number(req.params.id);
 
         if (!Number.isInteger(categoryId)) {
-            return res.status(400).json({ message: "Galat category id" });
+            return res.status(400).json({ message: "Invalid category id" });
         }
 
         const { name } = req.body;
 
         if (!name || !name.trim()) {
-            return res.status(400).json({ message: "Category ka naam dein" });
+            return res.status(400).json({ message: "Please enter a category name" });
         }
 
         const result = await db.query(
@@ -67,13 +67,13 @@ router.put("/:id", verifyToken, requireRole("admin"), async (req, res) => {
         );
 
         if (result.rows.length === 0) {
-            return res.status(404).json({ message: "Category nahi mili" });
+            return res.status(404).json({ message: "Category not found" });
         }
 
-        res.json({ message: "Category update ho gayi", category: result.rows[0] });
+        res.json({ message: "Category updated successfully", category: result.rows[0] });
     } catch (error) {
         if (error.code === "23505") {
-            return res.status(409).json({ message: "Ye naam pehle se maujood hai" });
+            return res.status(409).json({ message: "This name already exists" });
         }
         console.log(error);
         res.status(500).json({ message: "Server error" });
@@ -87,7 +87,7 @@ router.delete("/:id", verifyToken, requireRole("admin"), async (req, res) => {
         const categoryId = Number(req.params.id);
 
         if (!Number.isInteger(categoryId)) {
-            return res.status(400).json({ message: "Galat category id" });
+            return res.status(400).json({ message: "Invalid category id" });
         }
 
         const result = await db.query(
@@ -96,14 +96,14 @@ router.delete("/:id", verifyToken, requireRole("admin"), async (req, res) => {
         );
 
         if (result.rows.length === 0) {
-            return res.status(404).json({ message: "Category nahi mili" });
+            return res.status(404).json({ message: "Category not found" });
         }
 
-        res.json({ message: "Category delete ho gayi" });
+        res.json({ message: "Category deleted successfully" });
     } catch (error) {
             if (error.code === "23503" || error.code === "23001") {
             return res.status(409).json({
-                message: "Is category mein products maujood hain, pehle unhein hatayein ya doosri category mein daalein"
+                message: "This category has products. Remove them or move them to another category first."
             });
         }
         console.log(error);

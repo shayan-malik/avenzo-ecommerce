@@ -36,7 +36,7 @@ router.post("/", async (req, res) => {
         const quantity = req.body.quantity === undefined ? 1 : Number(req.body.quantity);
 
         if (!Number.isInteger(product_id) || !Number.isInteger(quantity) || quantity < 1) {
-            return res.status(400).json({ message: "product_id aur quantity sahi dein" });
+            return res.status(400).json({ message: "Please provide a valid product_id and quantity" });
         }
 
         const productResult = await db.query(
@@ -47,7 +47,7 @@ router.post("/", async (req, res) => {
         const product = productResult.rows[0];
 
         if (!product) {
-            return res.status(404).json({ message: "Product nahi mila" });
+            return res.status(404).json({ message: "Product not found" });
         }
 
         const existingResult = await db.query(
@@ -59,7 +59,7 @@ router.post("/", async (req, res) => {
         const newQty = existingQty + quantity;
 
         if (newQty > product.stock) {
-            return res.status(400).json({ message: `Sirf ${product.stock} items stock mein hain` });
+            return res.status(400).json({ message: `Only ${product.stock} items are in stock` });
         }
 
         const result = await db.query(
@@ -71,7 +71,7 @@ router.post("/", async (req, res) => {
             [req.user.id, product_id, newQty]
         );
 
-        res.status(201).json({ message: "Cart mein add ho gaya", item: result.rows[0] });
+        res.status(201).json({ message: "Added to cart", item: result.rows[0] });
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: "Server error" });
@@ -85,7 +85,7 @@ router.put("/:id", async (req, res) => {
         const quantity = Number(req.body.quantity);
 
         if (!Number.isInteger(itemId) || !Number.isInteger(quantity) || quantity < 1) {
-            return res.status(400).json({ message: "Quantity 1 ya us se zyada poora number ho" });
+            return res.status(400).json({ message: "Quantity must be a whole number (1 or more)" });
         }
 
         const check = await db.query(
@@ -97,11 +97,11 @@ router.put("/:id", async (req, res) => {
         );
 
         if (check.rows.length === 0) {
-            return res.status(404).json({ message: "Cart item nahi mila" });
+            return res.status(404).json({ message: "Cart item not found" });
         }
 
         if (quantity > check.rows[0].stock) {
-            return res.status(400).json({ message: `Sirf ${check.rows[0].stock} items stock mein hain` });
+            return res.status(400).json({ message: `Only ${check.rows[0].stock} items are in stock` });
         }
 
         const result = await db.query(
@@ -111,7 +111,7 @@ router.put("/:id", async (req, res) => {
             [quantity, itemId, req.user.id]
         );
 
-        res.json({ message: "Quantity update ho gayi", item: result.rows[0] });
+        res.json({ message: "Quantity updated successfully", item: result.rows[0] });
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: "Server error" });
@@ -124,7 +124,7 @@ router.delete("/:id", async (req, res) => {
         const itemId = Number(req.params.id);
 
         if (!Number.isInteger(itemId)) {
-            return res.status(400).json({ message: "Galat id" });
+            return res.status(400).json({ message: "Invalid id" });
         }
 
         const result = await db.query(
@@ -133,10 +133,10 @@ router.delete("/:id", async (req, res) => {
         );
 
         if (result.rows.length === 0) {
-            return res.status(404).json({ message: "Cart item nahi mila" });
+            return res.status(404).json({ message: "Cart item not found" });
         }
 
-        res.json({ message: "Cart se hata diya" });
+        res.json({ message: "Removed from cart" });
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: "Server error" });
