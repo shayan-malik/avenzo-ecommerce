@@ -2,6 +2,9 @@ import express from "express";
 import bcrypt from "bcrypt";
 import { db } from "../db.js";
 import jwt from "jsonwebtoken";
+import { OAuth2Client } from "google-auth-library";
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const router = express.Router();
 
@@ -67,6 +70,12 @@ router.post("/login", async (req, res) => {
             return res.status(401).json({ message: "Incorrect email or password" });
         }
 
+        if (!user.password_hash) {
+            return res.status(400).json({
+                message: "This account uses Google sign-in. Please use Continue with Google."
+            });
+        }
+
         const isMatch = await bcrypt.compare(password, user.password_hash);
 
         if (!isMatch) {
@@ -119,9 +128,87 @@ router.post("/logout", (req, res) => {
 
 
 
+router.post("/google", async (req, res) => {
+    try {
+        const { credential } = req.body;
 
+        if (!credential) {
+            return res.status(400).json({ message: "Google credential is missing" });
+        }
 
+        const ticket = await googleClient.verifyIdToken({
+            idToken: credential,
+            audience: process.env.GOOGLE_CLIENT_ID
+        });
 
+        const payload = ticket.getPayload();
+
+        if (!payload || !payload.email || !payload.email_verified) {
+            return res.status(400).json({ message: "Your Google email is not verified" });
+        }
+
+        const googleId = payload.sub;
+        const email = payload.email.trim().toLowerCase();
+
+        const existing = await db.query(
+            `SELECT id, first_name, last_name, email, role, is_active, google_id
+             FROM users WHERE google_id = $1 OR email = $2`,
+            [googleId, email]
+        );
+
+        let user = existing.rows[0];
+
+        if (user) {
+            if (!user.is_active) {
+                return res.status(403).json({ message: "Your account has been deactivated" });
+            }
+
+            // purana email wala account hai: Google se jod do
+            if (!user.google_id) {
+                await db.query("UPDATE users SET google_id = $1 WHERE id = $2", [googleId, user.id]);
+            }
+        } else {
+            const firstName = (payload.given_name || payload.name || "User").trim();
+            const lastName = (payload.family_name || "").trim();
+
+            const created = await db.query(
+                `INSERT INTO users (first_name, last_name, email, google_id)
+                 VALUES ($1, $2, $3, $4)
+                 RETURNING id, first_name, last_name, email, role`,
+                [firstName, lastName, email, googleId]
+            );
+
+            user = created.rows[0];
+        }
+
+        const token = jwt.sign(
+            { id: user.id, role: user.role },
+            process.env.JWT_SECRET,
+            { expiresIn: "7d" }
+        );
+
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            maxAge: 7 * 24 * 60 * 60 * 1000
+        });
+
+        res.json({
+            message: "Logged in successfully",
+            user: {
+                id: user.id,
+                first_name: user.first_name,
+                last_name: user.last_name,
+                email: user.email,
+                role: user.role
+            }
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(401).json({ message: "Google sign-in failed. Please try again." });
+    }
+});
 
 
 export default router;
