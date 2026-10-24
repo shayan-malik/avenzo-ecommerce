@@ -4,11 +4,12 @@ REST API for **Avenzo**, a full-stack e-commerce app. Built with Node.js, Expres
 
 - **Live API:** https://avenzo-ecommerce.vercel.app/
 - **Live app:** https://avenzo-plum.vercel.app/
-- **Frontend repo:** https://github.com/shayan-malik/avenzo
+- **Frontend repo:** <frontend-repo-url>
 
 ## Features
 
 - JWT authentication stored in an httpOnly cookie, passwords hashed with bcrypt
+- Google sign-in: the frontend sends a Google ID token, the API verifies it with `google-auth-library`, then finds, links (by verified email) or creates the user and issues the same JWT cookie
 - Role-based access control (`user` and `admin`) through `verifyToken` and `requireRole` middleware
 - Products with search, category filter, sorting and pagination
 - Cart with stock validation
@@ -20,13 +21,13 @@ REST API for **Avenzo**, a full-stack e-commerce app. Built with Node.js, Expres
 
 ## Tech Stack
 
-Node.js, Express (ES modules), PostgreSQL (Neon), `pg`, JWT, bcrypt, multer, Cloudinary, helmet, express-rate-limit. Deployed on Vercel.
+Node.js, Express (ES modules), PostgreSQL (Neon), `pg`, JWT, bcrypt, Google OAuth (`google-auth-library`), multer, Cloudinary, helmet, express-rate-limit. Deployed on Vercel.
 
 ## API Overview
 
 | Route group | Access | Description |
 | --- | --- | --- |
-| `/api/auth` | Public | Sign up, log in, log out |
+| `/api/auth` | Public | Sign up, log in, Google sign-in, log out |
 | `/api/profile` | Logged in | Get, update and deactivate own profile |
 | `/api/categories` | GET public, others admin | List, add, rename, delete |
 | `/api/products` | GET public, others admin | List (search, filter, sort, pagination), detail, add, edit, delete |
@@ -37,8 +38,8 @@ Node.js, Express (ES modules), PostgreSQL (Neon), `pg`, JWT, bcrypt, multer, Clo
 ## Run Locally
 
 ```bash
-git clone https://github.com/shayan-malik/avenzo-ecommerce
-cd avenzo-ecommerce
+git clone <backend-repo-url>
+cd <backend-folder>
 npm install
 ```
 
@@ -55,6 +56,7 @@ JWT_SECRET=a-long-random-string
 CLOUDINARY_CLOUD_NAME=your-cloud-name
 CLOUDINARY_API_KEY=your-api-key
 CLOUDINARY_API_SECRET=your-api-secret
+GOOGLE_CLIENT_ID=your-google-oauth-client-id
 ```
 
 ```bash
@@ -87,5 +89,5 @@ The API runs on `http://localhost:5000`.
 
 **Shayan Malik**
 
-- GitHub: https://github.com/shayan-malik
-- LinkedIn: https://www.linkedin.com/in/shayan-malik-43a93139b/
+- GitHub: https://github.com/your-username
+- LinkedIn: https://linkedin.com/in/your-profile
